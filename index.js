@@ -1,4 +1,6 @@
 const { Client, GatewayIntentBits, ChannelType } = require("discord.js");
+const { CreateForumPost } = require("./useForumPost.js");
+const { CreateForumChannel, CreateNewChannel } = require("./useChannel.js");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -18,41 +20,50 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
   // on message created (on any channel)
 
-  if (message.author.bot) return; // if message author is a bot, return
+  if (message.author.bot) return;
 
-  if (message.content === "!createForumPost")   // If message content is ?, do something
-  {
-    await CreateForumPost(message, "Title", "Description");
-  }
+  if (message.content === "!help")
+    CMD_Help(message);
+
+  if (message.content === "!initialize")
+    CMD_InitializeForum(message);
+
 });
 
-client.login(process.env.TOKEN);
-
-async function CreateForumPost(message, title, description) {
-  const channelName = "forum-test";
-
-  try {
-    const forumChannel = message.guild.channels.cache.find(
-      (ch) => ch.name === channelName && ch.type === ChannelType.GuildForum
-    );
-
-    if (!forumChannel) {
-      return message.reply(`No se encontró el canal de foro llamado ${channelName}.`);
-    }
-
-    await forumChannel.threads.create({
-      name: title,
-      message: {
-        content: description,
-      },
-    });
-
-    await message.reply("¡Publicación en el foro creada con éxito!");
-  } 
-  catch (error) 
-  {
-    console.error("Error al crear la publicación en el foro:", error);
-    await message.reply("Hubo un error al intentar crear la publicación.");
-  }
-
+async function CMD_Help(message) {
+  message.channel.send
+    (`
+    Help:
+    > \`\`\`!initialize\`\`\`
+    -> Initialize the server channels.
+    > \`\`\`!initialize\`\`\`
+    -> Initialize the server channels.
+    `);
 }
+
+async function CMD_InitializeForum(message) {
+  const channel = await CreateForumChannel(message);
+
+  // Crear los subcanales
+  const showoffChannel = await CreateNewChannel(message, channel, 0, "Showoff");
+  const discussionChannel = await CreateNewChannel(message, channel, 15, "Discussion");
+  const gameChannel = await CreateNewChannel(message, channel, 0, "Game");
+
+  // Comprobamos si los canales fueron creados correctamente
+  const showoffId = showoffChannel ? showoffChannel.id : null;
+  const discussionId = discussionChannel ? discussionChannel.id : null;
+  const gameId = gameChannel ? gameChannel.id : null;
+
+  // Enviar mensaje con enlaces a los canales creados
+  const messageContent = `
+    ¡El canal DsDev-Forum ha sido creado con éxito!
+    ${showoffId ? `<#${showoffId}>` : ''}
+    ${discussionId ? `<#${discussionId}>` : ''}
+    ${gameId ? `<#${gameId}>` : ''}
+  `;
+
+  // Enviar mensaje en el canal donde se ejecutó el comando
+  message.channel.send(messageContent);
+}
+
+client.login(process.env.TOKEN);

@@ -14,7 +14,8 @@
     "@discordjs/rest": "^2.4.3",
     "discord-api-types": "^0.38.1",
     "discord.js": "^14.18.0",
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "mysqli": "^3.1.4"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
